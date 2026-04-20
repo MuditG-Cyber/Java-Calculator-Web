@@ -31,15 +31,16 @@ public class CalculatorServer {
     static class StaticFileHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            String root = ".";
             String path = t.getRequestURI().getPath();
-            if (path.equals("/")) {
+            if (path.equals("/") || path.isEmpty()) {
                 path = "/index.html";
             }
             
-            File file = new File(root + path).getCanonicalFile();
+            // Safe path resolution for Docker/Linux/Windows
+            File file = new File(System.getProperty("user.dir"), path).getCanonicalFile();
+            
             if (!file.exists()) {
-                String response = "404 (Not Found)\n";
+                String response = "404 (Not Found from Java Server) - Tried: " + file.getAbsolutePath() + "\n";
                 t.sendResponseHeaders(404, response.length());
                 OutputStream os = t.getResponseBody();
                 os.write(response.getBytes());
