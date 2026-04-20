@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Calculator | Java PBL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --calc-bg: rgba(30, 41, 59, 0.7);
+            --calc-border: rgba(255, 255, 255, 0.1);
+            --btn-bg: rgba(255, 255, 255, 0.05);
+            --btn-hover: rgba(255, 255, 255, 0.1);
+            --btn-active: rgba(255, 255, 255, 0.15);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background Gradients for Wow Factor */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #3b82f6, #8b5cf6);
+            top: 10%;
+            left: 20%;
+        }
+
+        .blob-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, #ec4899, #f43f5e);
+            bottom: 10%;
+            right: 20%;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* Glassmorphism Calculator Card */
+        .calculator {
+            background: var(--calc-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--calc-border);
+            border-radius: 30px;
+            padding: 32px;
+            width: 380px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header {
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .display {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: right;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .equation {
+            min-height: 24px;
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 8px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .result {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -1px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .result::-webkit-scrollbar {
+            display: none;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            background: var(--btn-bg);
+            color: var(--text-main);
+            font-size: 1.5rem;
+            font-weight: 400;
+            border-radius: 16px;
+            height: 64px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid transparent;
+        }
+
+        button:hover {
+            background: var(--btn-hover);
+            transform: scale(1.05);
+        }
+
+        button:active {
+            background: var(--btn-active);
+            transform: scale(0.95);
+        }
+
+        button.op {
+            color: #60a5fa;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        button.op:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        button.equals {
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        button.equals:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        button.clear {
+            color: #f87171;
+            font-weight: 600;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        button.clear:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #ef4444;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="calculator">
+        <div class="header">
+            <h1>CalcPro</h1>
+            <p><span class="status-dot"></span> Powered by Java Server</p>
+        </div>
+
+        <div class="display">
+            <div class="equation" id="equation"></div>
+            <div class="result" id="result">0</div>
+        </div>
+
+        <div class="keypad">
+            <button class="clear" onclick="clearAll()">AC</button>
+            <button class="clear" onclick="deleteLast()">DEL</button>
+            <button class="op" onclick="setOperation('/')">÷</button>
+            <button class="op" onclick="setOperation('*')">×</button>
+
+            <button onclick="appendNum('7')">7</button>
+            <button onclick="appendNum('8')">8</button>
+            <button onclick="appendNum('9')">9</button>
+            <button class="op" onclick="setOperation('-')">−</button>
+
+            <button onclick="appendNum('4')">4</button>
+            <button onclick="appendNum('5')">5</button>
+            <button onclick="appendNum('6')">6</button>
+            <button class="op" onclick="setOperation('+')">+</button>
+
+            <button onclick="appendNum('1')">1</button>
+            <button onclick="appendNum('2')">2</button>
+            <button onclick="appendNum('3')">3</button>
+            <button class="equals" style="grid-row: span 2;" onclick="calculate()">
+                <span id="equals-text">=</span>
+                <span class="loading" id="loading-spinner"></span>
+            </button>
+
+            <button onclick="appendNum('0')" style="grid-column: span 2;">0</button>
+            <button onclick="appendNum('.')">.</button>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">Error message</div>
+
+    <script>
+        let currentNum = '0';
+        let previousNum = '';
+        let operation = null;
+        let isNewNumber = true;
+
+        const resultEl = document.getElementById('result');
+        const equationEl = document.getElementById('equation');
+        const equalsText = document.getElementById('equals-text');
+        const spinner = document.getElementById('loading-spinner');
+        const toastEl = document.getElementById('toast');
+
+        function updateDisplay() {
+            if (currentNum.length > 9) {
+                resultEl.style.fontSize = '2rem';
+            } else {
+                resultEl.style.fontSize = '3rem';
+            }
+            resultEl.innerText = currentNum;
+
+            if (operation) {
+                let opSymbol = operation;
+                if (opSymbol === '*') opSymbol = '×';
+                if (opSymbol === '/') opSymbol = '÷';
+                if (opSymbol === '-') opSymbol = '−';
+                equationEl.innerText = `${previousNum} ${opSymbol}`;
+            } else {
+                equationEl.innerText = '';
+            }
+        }
+
+        function appendNum(num) {
+            if (isNewNumber) {
+                if (num === '.') {
+                    currentNum = '0.';
+                } else {
+                    currentNum = num;
+                }
+                isNewNumber = false;
+            } else {
+                if (num === '.' && currentNum.includes('.')) return;
+                currentNum += num;
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentNum = '0';
+            previousNum = '';
+            operation = null;
+            isNewNumber = true;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (isNewNumber) return;
+            if (currentNum.length === 1 || (currentNum.length === 2 && currentNum.startsWith('-'))) {
+                currentNum = '0';
+                isNewNumber = true;
+            } else {
+                currentNum = currentNum.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        function setOperation(op) {
+            if (operation !== null && !isNewNumber) {
+                calculate(true, op);
+                return;
+            }
+            operation = op;
+            previousNum = currentNum;
+            isNewNumber = true;
+            updateDisplay();
+        }
+
+        function showToast(msg) {
+            toastEl.innerText = msg;
+            toastEl.classList.add('show');
+            setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 3000);
+        }
+
+        async function calculate(chain = false, nextOp = null) {
+            if (operation === null || isNewNumber) return;
+
+            const payload = {
+                num1: parseFloat(previousNum),
+                num2: parseFloat(currentNum),
+                operation: operation
+            };
+            
+            // Set Loading state for premium feel
+            equalsText.style.display = 'none';
+            spinner.style.display = 'block';
+
+            try {
+                // Sends operation to the Java Backend running on localhost:8080
+                const response = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showToast(data.error);
+                    clearAll();
+                } else {
+                    let resStr = data.result.toString();
+                    if (resStr.includes('.') && resStr.split('.')[1].length > 6) {
+                        resStr = parseFloat(data.result).toFixed(6).replace(/\.?0+$/, '');
+                    }
+                    
+                    currentNum = resStr;
+                    if (chain) {
+                        previousNum = currentNum;
+                        operation = nextOp;
+                        isNewNumber = true;
+                    } else {
+                        operation = null;
+                        previousNum = '';
+                        isNewNumber = true;
+                    }
+                }
+            } catch (err) {
+                console.error("Backend error:", err);
+                showToast("Server is not running! Please run CalculatorServer.java");
+            } finally {
+                equalsText.style.display = 'block';
+                spinner.style.display = 'none';
+                updateDisplay();
+            }
+        }
+
+        // Keyboard Support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') appendNum(e.key);
+            if (e.key === '.') appendNum('.');
+            if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') setOperation(e.key);
+            if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); calculate(); }
+            if (e.key === 'Backspace') deleteLast();
+            if (e.key === 'Escape') clearAll();
+        });
+    </script>
+</body>
+</html>
